@@ -11,10 +11,8 @@ import sys
 import numpy
 import subprocess
 
-
-
 def Version():
-	print """miRBaseMiner Version: 0.1 """
+	print """miRBaseMiner Version: 0.2 """
 
 def DMOminning():
 	############################################
@@ -65,8 +63,6 @@ def DMOminning():
 
 	print "##########\n##########\nFinished Demonstration of miRBaseMiner\n##########\n##########\n"
 
-
-## in-class function 
 def makeRightPath( pathStr):
 	############################################
 	## check if "/" is attached to the end of the path string
@@ -75,12 +71,17 @@ def makeRightPath( pathStr):
 		pathStr = pathStr+"/"
 	return pathStr
 
-## public function
+####################################################
+## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+## main functions ========>
+## PUBLIC FUNCTION
 def RetrieveMiRBase( targetDir, versionList):
 	############################################
 	## downloading miRBase releases data from chosen versions into user chosen directory
 	############################################
 	##try to capture error of NO pigz installed
+	print "\nDownloading miRBase releases data ==========>>\n"
 	try:
 		pigzPath = subprocess.check_output("which pigz", shell=True)
 		pigzPath = pigzPath.rstrip() 
@@ -148,8 +149,9 @@ def RetrieveMiRBase( targetDir, versionList):
 	## in case that user didn't install pigz
 	except subprocess.CalledProcessError, e:
 		print "Could not find executable path for pigz"
+
+	print "\n <<========== Downloading miRBase releases data \n\n"
 	
-## in-class function 
 def countingMatureInVersion( miWorkDir, miVersionList, miOutputFolder):
 	############################################
 	## this function is to count miRNA in each species and each version
@@ -189,7 +191,6 @@ def countingMatureInVersion( miWorkDir, miVersionList, miOutputFolder):
 	WriteList2File(sumSpeciesInVersionArray, filenamePrefix+"countingSpeciesInVersion.tsv",miOutputFolder)
 	WriteList2File(sumMatureInVersionArray, filenamePrefix+"countingMatureInVersion.tsv",miOutputFolder)
 
-## in-class function 
 def matureSeqLenDistribution( miWorkDir, miVersionList, miOutputFolder):
 	############################################
 	## build a sequence length distribution for mature miRNAs, for each species, for each version
@@ -224,7 +225,6 @@ def matureSeqLenDistribution( miWorkDir, miVersionList, miOutputFolder):
 	filenamePrefix = "miRBase_"+"V"+str(miVersionList[0]) + "-"+"V"+str(miVersionList[-1])+"_"
 	WriteList2File(seqLengthDistArray, filenamePrefix+"MatureSeqLenDistInVersions.tsv",miOutputFolder) 
 
-## in-class function 
 def buildText4SpeciesCloud( miWorkDir, miVersionList, miOutputFolder):
 	############################################
 	##  extract species code for build word cloud to show species abundance in mature miRNA annotation
@@ -241,7 +241,6 @@ def buildText4SpeciesCloud( miWorkDir, miVersionList, miOutputFolder):
 		filenamePrefix = "miRBase_"+versionStr +"_"
 		WriteList2File("  ".join(speciesCloudTextArray)+"\n",filenamePrefix+"Text4SpeciesCloud.tsv",miOutputFolder)
 
-## in-class function 
 def countingBySpecies( queryFaDict):
 	############################################
 	## count the amount of miRNA for each species in a given fasta dictionary
@@ -255,7 +254,6 @@ def countingBySpecies( queryFaDict):
 			countingDict[ispecies] = 1
 	return countingDict
 
-## in-class function 
 def diffCountMatureHairpin( miWorkDir, miVersionList, miOutputFolder):
 	############################################
 	## this function is to count miRNA and hairpin in each species and in each version
@@ -288,14 +286,10 @@ def diffCountMatureHairpin( miWorkDir, miVersionList, miOutputFolder):
 			for jkey in iHairpinCountBySpeciesDict:
 				mhDiffInVersions.append(versionStr +"\t"+ jspecies +"\t"+ str(0) +"\t"+ str(iHairpinCountBySpeciesDict[jkey]) +"\t"+ str(0 - iHairpinCountBySpeciesDict[jkey])+"\n" )
 		
-		# print len(iHairpinCountBySpeciesDictCopy) 
 		mergedSpecies = iMatureCountBySpeciesDict.keys()
 		mergedSpecies += iHairpinCountBySpeciesDictCopy.keys()
 		mergedSpecies += iChildParentDict.keys()
 		print "before unique:%i, after merge %i"%(len(mergedSpecies), len(set(mergedSpecies)))
-		# print iHairpinCountBySpeciesDict["hsa"]
-		# print len(iHairpinCountBySpeciesDictCopy)
-		# print "\t".join(iHairpinCountBySpeciesDictCopy.keys())
 		missingArray = []
 		for ikey in iMatureFaSeqDict.keys():
 			if not ikey in allCHILDlist:
@@ -326,7 +320,7 @@ def diffCountMatureHairpin( miWorkDir, miVersionList, miOutputFolder):
 	WriteList2File(mhDiffInVersionsADV, filenamePrefix+"CountingMatureHairpinBySpeciesInVersions-ADVANCED.tsv",miOutputFolder) 
 	WriteList2File(missingArray, filenamePrefix+"CountingMatureHairpinBySpeciesInVersions-MISSING.tsv",miOutputFolder) 
 
-## public function
+## PUBLIC FUNCTION
 def Overview( miWorkDir, miVersionList, miOutputFolder):
 	############################################
 	## investigate the overview of miRBase 
@@ -336,11 +330,11 @@ def Overview( miWorkDir, miVersionList, miOutputFolder):
 	## (4) and word cloud for species abundancy in each version
 	############################################
 	## first check output folder
-	if os.path.isdir(miOutputFolder):
-		miOutputFolder = makeRightPath(miOutputFolder)
+	print "\nBuilding overview of miRBase annotation ==========>>\n" 
+	if miOutputFolder == "" or not miOutputFolder:
+		miOutputFolder = makeRightPath(makeRightPath(miWorkDir)+"resultsTables")
 	else:
-		miOutputFolder = makeRightPath(miWorkDir)+"resultsTables"
-		miOutputFolder = makeRightPath(miOutputFolder)		
+		miOutputFolder = makeRightPath(makeRightPath(miWorkDir)+miOutputFolder)
 	if not os.path.exists(miOutputFolder):
 		os.makedirs(miOutputFolder)
 	miWorkDir = makeRightPath(makeRightPath(miWorkDir) +"miRBase")
@@ -362,46 +356,51 @@ def Overview( miWorkDir, miVersionList, miOutputFolder):
 	filenamePrefix = "miRBase_"+"V"+str(miVersionList[0]) + "-"+"V"+str(miVersionList[-1])+"_"
 	assemblerRscript_countingMatureInVersion(filenamePrefix, miOutputFolder, miRscriptsFolder)
 	rscriptExecuteCmd = " ".join(["Rscript" , (miRscriptsFolder+"countingMatureInVersion.R")  ])
-	os.system(rscriptExecuteCmd)
+	# os.system(rscriptExecuteCmd)
 	## ## ploting by R script --- matureSeqLenDistribution
 	filenamePrefix = "miRBase_"+"V"+str(miVersionList[0]) + "-"+"V"+str(miVersionList[-1])+"_"
 	assemblerRscript_matureSeqLenDistribution(filenamePrefix, miOutputFolder, miRscriptsFolder)		
 	rscriptExecuteCmd = " ".join(["Rscript" , (miRscriptsFolder+"matureSeqLenDistribution.R")  ])
-	os.system(rscriptExecuteCmd)
+	# os.system(rscriptExecuteCmd)
 	## ## ploting by R script --- buildText4SpeciesCloud
 	filenamePrefix = "miRBase_"+"V"+str(miVersionList[-1])+"_"
 	assemblerRscript_buildText4SpeciesCloud(filenamePrefix, miOutputFolder, miRscriptsFolder)		
 	rscriptExecuteCmd = " ".join(["Rscript" , (miRscriptsFolder+"buildText4SpeciesCloud.R")  ])
-	os.system(rscriptExecuteCmd)
+	# os.system(rscriptExecuteCmd)
 	## ## ploting by R script --- diffCountMatureHairpin
 	filenamePrefix = "miRBase_"+"V"+str(miVersionList[0]) + "-"+"V"+str(miVersionList[-1])+"_"
 	assemblerRscript_diffCountMatureHairpin(filenamePrefix, miOutputFolder, miRscriptsFolder)		
 	rscriptExecuteCmd = " ".join(["Rscript" , (miRscriptsFolder+"diffCountMatureHairpin.R")  ])
-	os.system(rscriptExecuteCmd)
+	# os.system(rscriptExecuteCmd)
 
-## public function
+	print "\n <<========== Building overview of miRBase annotation \n\n"
+
+## PUBLIC FUNCTION
 def MFEdistribution( miWorkDir, miVersionList, miOutputFolder, miSpecies):
 	############################################
 	## investigate MFE distribution of pre-miRNA
 	## also including other features related to MFE: sequence length, GC content, MFE index
 	############################################
-	if os.path.isdir(miOutputFolder):
-		miOutputFolder = makeRightPath(miOutputFolder)
+	print "\nMFE distribution of pre-miRNAs ==========>>\n"
+	if miOutputFolder == "" or not miOutputFolder:
+		miOutputFolder = makeRightPath(makeRightPath(miWorkDir)+"resultsTables")
 	else:
-		miOutputFolder = makeRightPath(miWorkDir)+"resultsTables"
-		miOutputFolder = makeRightPath(miOutputFolder)		
+		miOutputFolder = makeRightPath(makeRightPath(miWorkDir)+miOutputFolder)	
 	if not os.path.exists(miOutputFolder):
 		os.makedirs(miOutputFolder)
 	miWorkDir = makeRightPath(makeRightPath(miWorkDir) +"miRBase")
 
-	speciesvalidatedMess = speciesValidation(miSpecies, miVersionList, miWorkDir)
-	if speciesvalidatedMess[0]:
-		fullDistributionMFE = []
-		fullDistributionMFE.append("version\tspecies\tprecuror\tAccessionID\tMFE\thairpinLength\tGCcontent\tadjMFE\tMFEIndex\n")
-		for iversion in miVersionList: ## iterate versions
-			versionStr = "V"+iversion
-			iverionFolder = makeRightPath(miWorkDir+iversion) 
-			for ispecies in miSpecies: ## iterate species
+	# speciesvalidatedMess = speciesValidation(miSpecies, miVersionList, miWorkDir)
+	# if speciesvalidatedMess[0]:
+	fullDistributionMFE = []
+	fullDistributionMFE.append("version\tspecies\tprecuror\tAccessionID\tMFE\thairpinLength\tGCcontent\tadjMFE\tMFEIndex\n")
+	for iversion in miVersionList: ## iterate versions
+		versionStr = "V"+iversion
+		iverionFolder = makeRightPath(miWorkDir+iversion) 
+		for ispecies in miSpecies: ## iterate species
+			## validate this species in this version
+			speciesvalidatedMess = speciesValidation(ispecies, iversion, miWorkDir)
+			if speciesvalidatedMess[0]:
 				iHairpinFaSeqDict = ReadFasta2DictFeaturesSubset(iverionFolder+"hairpin.fa", ispecies) ## read fasta sequence
 				iMFEhairpinDict = ReadMFEfromMiRStr(iverionFolder+"miRNA.str") ## read in MFE profile
 				for ihairpin in iHairpinFaSeqDict: ## iterate each pre-miRNA
@@ -416,23 +415,25 @@ def MFEdistribution( miWorkDir, miVersionList, miOutputFolder, miSpecies):
 						fullDistributionMFE.append(versionStr +"\t"+ ispecies +"\t"+ ihairpin +"\t"+ iAccessionID +"\t"+ str(iHairpinMFE) +"\t"+ str(iHairpinFaSeqDict[ihairpin].split("\t")[1]) +"\t"+ str(iHairpinGC) +"\t"+ str(iAdjMFE) +"\t"+ str(iMFEindex) +"\n")
 					else:
 						print "Couldn't find MFE for %s in miRNA.str!"%(ihairpin )
-		## write out into file
-		filenamePrefix = "miRBase_"+"V"+str(miVersionList[0]) + "-"+"V"+str(miVersionList[-1])+"_"+"-".join(miSpecies)+"_"
-		WriteList2File(fullDistributionMFE, filenamePrefix + "fullDistribution4MFE.tsv",miOutputFolder)
+			else:
+				## species validation failed
+				print speciesvalidatedMess[1]
+	## write out into file
+	filenamePrefix = "miRBase_"+"V"+str(miVersionList[0]) + "-"+"V"+str(miVersionList[-1])+"_"+"-".join(miSpecies)+"_"
+	WriteList2File(fullDistributionMFE, filenamePrefix + "fullDistribution4MFE.tsv",miOutputFolder)
 
-		## ## ploting by R script --- MFEdistribution
-		miRscriptsFolder = makeRightPath(miOutputFolder+"Rscripts")
-		if not os.path.exists(miRscriptsFolder):
-			os.makedirs(miRscriptsFolder)
-		filenamePrefix = "miRBase_"+"V"+str(miVersionList[0]) + "-"+"V"+str(miVersionList[-1])+"_"+"-".join(miSpecies)+"_"
-		assemblerRscript_MFEdistribution(filenamePrefix, miOutputFolder, miRscriptsFolder)
-		rscriptExecuteCmd = " ".join(["Rscript" , (miRscriptsFolder+"MFEdistribution.R")  ])
-		os.system(rscriptExecuteCmd)
-	else:
-		## species validation failed
-		print speciesvalidatedMess[1]
+	## ## ploting by R script --- MFEdistribution
+	miRscriptsFolder = makeRightPath(miOutputFolder+"Rscripts")
+	if not os.path.exists(miRscriptsFolder):
+		os.makedirs(miRscriptsFolder)
+	filenamePrefix = "miRBase_"+"V"+str(miVersionList[0]) + "-"+"V"+str(miVersionList[-1])+"_"+"-".join(miSpecies)+"_"
+	assemblerRscript_MFEdistribution(filenamePrefix, miOutputFolder, miRscriptsFolder)
+	rscriptExecuteCmd = " ".join(["Rscript" , (miRscriptsFolder+"MFEdistribution.R")  ])
+	# os.system(rscriptExecuteCmd)
 	
-## in-class function 
+
+	print "\n <<========== MFE distribution of pre-miRNA \n\n"
+	
 def identicalWithinSpecies( miWorkDir, miVersionList, miOutputFolder, miSpecies):
 	############################################
 	## find miRNAs share identical sequence within each given species
@@ -466,9 +467,8 @@ def identicalWithinSpecies( miWorkDir, miVersionList, miOutputFolder, miSpecies)
 		os.makedirs(miRscriptsFolder)
 	assemblerRscript_identicalWithinSpecies(filenamePrefix, miOutputFolder, miRscriptsFolder)
 	rscriptExecuteCmd = " ".join(["Rscript" , (miRscriptsFolder+"identicalWithinSpecies.R")  ])
-	os.system(rscriptExecuteCmd)
+	# os.system(rscriptExecuteCmd)
 
-## in-class function 
 def identicalBetweenSpecies( miWorkDir, miVersionList, miOutputFolder, miSpecies):
 	############################################
 	## find miRNAs share identical sequence between given species 
@@ -502,18 +502,18 @@ def identicalBetweenSpecies( miWorkDir, miVersionList, miOutputFolder, miSpecies
 	filenamePrefix = "miRBase_"+"V"+str(miVersionList[0]) + "-"+"V"+str(miVersionList[-1])+"_"+"-".join(miSpecies)+"_"
 	WriteList2File(uniqueSeqBetweenSpeciesArray, filenamePrefix+"IdenticalSequenceBetweenSpecies.tsv",miOutputFolder) 
 
-## public function
+## PUBLIC FUNCTION
 def IdenticalSequenceMir( miWorkDir, miVersionList, miOutputFolder, miSpecies):
 	############################################
 	## investigate full length identical sequence in miRNA/pre-miRNA, share sequence between different species
 	## require more than one species in miSpecies
 	############################################
 	## prepare output folder and work directory
-	if os.path.isdir(miOutputFolder):
-		miOutputFolder = makeRightPath(miOutputFolder)
+	print "\nSearching full length identical sequence in miRNAs or pre-miRNAs ==========>>\n"
+	if miOutputFolder == "" or not miOutputFolder:
+		miOutputFolder = makeRightPath(makeRightPath(miWorkDir)+"resultsTables")
 	else:
-		miOutputFolder = makeRightPath(miWorkDir)+"resultsTables"
-		miOutputFolder = makeRightPath(miOutputFolder)		
+		miOutputFolder = makeRightPath(makeRightPath(miWorkDir)+miOutputFolder)
 	if not os.path.exists(miOutputFolder):
 		os.makedirs(miOutputFolder)
 	miWorkDir = makeRightPath(makeRightPath(miWorkDir) +"miRBase")
@@ -522,7 +522,9 @@ def IdenticalSequenceMir( miWorkDir, miVersionList, miOutputFolder, miSpecies):
 	if len(miSpecies) > 1 :
 		identicalBetweenSpecies(miWorkDir, miVersionList, miOutputFolder, miSpecies)
 
-## in-class function 
+	print "\n <<========== Searching full length identical sequence in miRNAs or pre-miRNAs \n\n"
+
+
 def buildName2NameAccessiondict( fastaDict1, fastaDict2):
 	############################################
 	## merge keys from two fasta dictionaries; 
@@ -535,7 +537,6 @@ def buildName2NameAccessiondict( fastaDict1, fastaDict2):
 		name2nameAccession[jkey.split("/")[0]] = jkey
 	return name2nameAccession
 
-## in-class function
 def findingSequenceOverlapping( iFastaSeqDict, versionStr, ispecies, imolecular,mirParentChildDict, name2nameAccessionDict, hairpinFaDict):
 	############################################
 	## find sequence overlapping with others in a given fasta dictionary
@@ -610,17 +611,17 @@ def findingSequenceOverlapping( iFastaSeqDict, versionStr, ispecies, imolecular,
 	else:
 		return hairpinOverlappingArray
 
-## public function
+## PUBLIC FUNCTION
 def SequenceOverlapping( miWorkDir, miVersionList, miOutputFolder, miSpecies):
 	############################################
 	## find sequence overlapping with others in given species list and version list
 	############################################
 	## prepare output folder and work directory
-	if os.path.isdir(miOutputFolder):
-		miOutputFolder = makeRightPath(miOutputFolder)
+	print "\nSearching sequence overlapping in miRNAs or pre-miRNAs ==========>>\n"
+	if miOutputFolder == "" or not miOutputFolder:
+		miOutputFolder = makeRightPath(makeRightPath(miWorkDir)+"resultsTables")
 	else:
-		miOutputFolder = makeRightPath(miWorkDir)+"resultsTables"
-		miOutputFolder = makeRightPath(miOutputFolder)		
+		miOutputFolder = makeRightPath(makeRightPath(miWorkDir)+miOutputFolder)	
 	if not os.path.exists(miOutputFolder):
 		os.makedirs(miOutputFolder)
 	miWorkDir = makeRightPath(makeRightPath(miWorkDir) +"miRBase")
@@ -656,9 +657,9 @@ def SequenceOverlapping( miWorkDir, miVersionList, miOutputFolder, miSpecies):
 	## write file 
 	filenamePrefix = "miRBase_"+"V"+str(miVersionList[0]) + "-"+"V"+str(miVersionList[-1])+"_"+"-".join(miSpecies)+"_"
 	WriteList2File(matureOverlappingArray, filenamePrefix+"SequenceOverlapping_mature.tsv",miOutputFolder) 
-	WriteList2File(hairpinOverlappingArray, filenamePrefix+"SequenceOverlapping_hairpin.tsv",miOutputFolder) 
+	WriteList2File(hairpinOverlappingArray, filenamePrefix+"SequenceOverlapping_hairpin.tsv",miOutputFolder)
+	print "\n <<========== Searching sequence overlapping in miRNAs or pre-miRNAs \n\n" 
 
-## in-class function 
 def endNucleotide( miWorkDir, miVersionList, miOutputFolder, miSpecies, miNTmers):
 	############################################
 	## investigate the nucleotide combination at both termini of miRNAs
@@ -702,7 +703,6 @@ def endNucleotide( miWorkDir, miVersionList, miOutputFolder, miSpecies, miNTmers
 	filenamePrefix = "miRBase_"+"V"+str(miVersionList[0]) + "-"+"V"+str(miVersionList[-1])+"_"+"-".join(miSpecies)+"_"
 	WriteList2File(endNucleotideCombinationArray, filenamePrefix+"EndNucleotideCombination_mature.tsv",miOutputFolder) 
 
-## in-class function 
 def polyAtailing( miWorkDir, miVersionList, miOutputFolder, miSpecies):
 	############################################
 	## investigate the poly(A) at 3' end of miRNA
@@ -729,7 +729,6 @@ def polyAtailing( miWorkDir, miVersionList, miOutputFolder, miSpecies):
 	filenamePrefix = "miRBase_"+"V"+str(miVersionList[0]) + "-"+"V"+str(miVersionList[-1])+"_"+"-".join(miSpecies)+"_"
 	WriteList2File(polyAtailingArray, filenamePrefix+"polyAtailing_mature.tsv",miOutputFolder)
 
-## in-class function 
 def polyNTheading( miWorkDir, miVersionList, miOutputFolder, miSpecies):
 	############################################
 	## investigate the polynucleotide at 5' end of miRNA
@@ -757,7 +756,6 @@ def polyNTheading( miWorkDir, miVersionList, miOutputFolder, miSpecies):
 	filenamePrefix = "miRBase_"+"V"+str(miVersionList[0]) + "-"+"V"+str(miVersionList[-1])+"_"+"-".join(miSpecies)+"_"
 	WriteList2File(polyNTheadingArray, filenamePrefix+"polyNTheading_mature.tsv",miOutputFolder)
 
-## in-class function
 def seedRegionSeq( miWorkDir, miVersionList, miOutputFolder, miSpecies):
 	############################################
 	## build seed region sequence profile
@@ -778,18 +776,18 @@ def seedRegionSeq( miWorkDir, miVersionList, miOutputFolder, miSpecies):
 			filenamePrefix = "miRBase_"+versionStr +"_"+ispecies+"_"
 			WriteList2File(seedSeqArray, filenamePrefix+"SeedRedionSequence.tsv",miOutputFolder)
 
-## public function
+## PUBLIC FUNCTION
 def NucleotideCombination( miWorkDir, miVersionList, miOutputFolder, miSpecies, miNTmers):
 	############################################
 	## investigate the nucleotide combination of miRNA
 	## ONLY available for mature miRNAs
 	## (1) endNucleotide; (2) polyAtailing; (3) polyNTheading; (4) seedRegionSeq.
 	############################################
-	if os.path.isdir(miOutputFolder):
-		miOutputFolder = makeRightPath(miOutputFolder)
+	print "\nNucleotide combination of miRNA ==========>>\n"
+	if miOutputFolder == "" or not miOutputFolder:
+		miOutputFolder = makeRightPath(makeRightPath(miWorkDir)+"resultsTables")
 	else:
-		miOutputFolder = makeRightPath(miWorkDir)+"resultsTables"
-		miOutputFolder = makeRightPath(miOutputFolder)		
+		miOutputFolder = makeRightPath(makeRightPath(miWorkDir)+miOutputFolder)	
 	if not os.path.exists(miOutputFolder):
 		os.makedirs(miOutputFolder)
 	miWorkDir = makeRightPath(makeRightPath(miWorkDir) +"miRBase")
@@ -810,9 +808,10 @@ def NucleotideCombination( miWorkDir, miVersionList, miOutputFolder, miSpecies, 
 	filenamePrefix = "miRBase_"+"V"+str(miVersionList[0]) + "-"+"V"+str(miVersionList[-1])+"_"+"-".join(miSpecies)+"_"
 	assemblerRscript_NucleotideCombination(filenamePrefix, miOutputFolder, miRscriptsFolder)
 	rscriptExecuteCmd = " ".join(["Rscript" , (miRscriptsFolder+"NucleotideCombination.R")  ])
-	os.system(rscriptExecuteCmd)
+	# os.system(rscriptExecuteCmd)
+	print "\n <<========== Nucleotide combination of miRNA \n\n"
 
-## 	public function
+## PUBLIC FUNCTION
 def TrackingDiffInVersions( miWorkDir, miVersionList, miOutputFolder, miSpecies):
 	############################################
 	## this function is to trick what happen in "miRNA.diff" file
@@ -829,11 +828,11 @@ def TrackingDiffInVersions( miWorkDir, miVersionList, miOutputFolder, miSpecies)
 	## ## # NAME          ID has changed
 	############################################
 	## prepare output folder and work directory
-	if os.path.isdir(miOutputFolder):
-		miOutputFolder = makeRightPath(miOutputFolder)
+	print "\n Tracking update difference in versions ==========>>\n"
+	if miOutputFolder == "" or not miOutputFolder:
+		miOutputFolder = makeRightPath(makeRightPath(miWorkDir)+"resultsTables")
 	else:
-		miOutputFolder = makeRightPath(miWorkDir)+"resultsTables"
-		miOutputFolder = makeRightPath(miOutputFolder)		
+		miOutputFolder = makeRightPath(makeRightPath(miWorkDir)+miOutputFolder)	
 	if not os.path.exists(miOutputFolder):
 		os.makedirs(miOutputFolder)
 	miWorkDir = makeRightPath(makeRightPath(miWorkDir) +"miRBase")
@@ -914,8 +913,8 @@ def TrackingDiffInVersions( miWorkDir, miVersionList, miOutputFolder, miSpecies)
 	WriteList2File(countingDiffArray, filenamePrefix+"CountingDiffInVersions.tsv",miOutputFolder)
 	WriteList2File(subsetDiffArray , filenamePrefix+"DiffTableInVersions.tsv",miOutputFolder)
 	WriteList2File(sequenceChangeArray , filenamePrefix+"SEQUENCEchangeInVersions.tsv",miOutputFolder)
+	print "\n <<========== Tracking update difference in versions \n\n"
 
-## in-class function
 def findingReverseComplementary( queryFasta,versionStr,ispecies, iMolecular):
 	############################################
 	## finding Reverse Complementary in a given fasta dictionary
@@ -960,17 +959,17 @@ def findingReverseComplementary( queryFasta,versionStr,ispecies, iMolecular):
 					overlappingRClist.append(jQueryAccID)
 	return [list(set(fullLenRClist)) ,list(set(overlappingRClist)),  reverseComplementaryMiRArray]
 
-## public function 
+## PUBLIC FUNCTION
 def ReverseComplementary( miWorkDir, miVersionList, miOutputFolder, miSpecies):
 	############################################
 	## reverse complementary within each given species in given versions
 	## only focus on the sequence, regardless the sequence annotated on which strand
 	############################################
-	if os.path.isdir(miOutputFolder):
-		miOutputFolder = makeRightPath(miOutputFolder)
+	print "\n Reverse Complementary sequences in miRNAs or pre-miRNAs ==========>>\n"
+	if miOutputFolder == "" or not miOutputFolder:
+		miOutputFolder = makeRightPath(makeRightPath(miWorkDir)+"resultsTables")
 	else:
-		miOutputFolder = makeRightPath(miWorkDir)+"resultsTables"
-		miOutputFolder = makeRightPath(miOutputFolder)		
+		miOutputFolder = makeRightPath(makeRightPath(miWorkDir)+miOutputFolder)	
 	if not os.path.exists(miOutputFolder):
 		os.makedirs(miOutputFolder)
 	miWorkDir = makeRightPath(makeRightPath(miWorkDir) +"miRBase")
@@ -987,18 +986,20 @@ def ReverseComplementary( miWorkDir, miVersionList, miOutputFolder, miSpecies):
 	## write file
 	filenamePrefix = "miRBase_"+"V"+str(miVersionList[0]) + "-"+"V"+str(miVersionList[-1]) +"_"+"-".join(miSpecies)+"_"
 	WriteList2File(reverseComplementaryMiRArray, filenamePrefix+"ReverseComplementaryInVersions.tsv",miOutputFolder)
+
+	print "\n <<========== Reverse Complementary sequences in miRNAs or pre-miRNAs \n\n"
 	
-## public function
+## PUBLIC FUNCTION
 def MiRrMultipleLocations( miWorkDir, miVersionList, miOutputFolder, miSpecies ):
 	############################################
 	## collect genome coordinates for miRNA/pre-miRNA from gff annotation file
 	## use miRNA/pre-miRNA ID/Accession as key to pull multiple location information together
 	############################################
-	if os.path.isdir(miOutputFolder):
-		miOutputFolder = makeRightPath(miOutputFolder)
+	print "\n Multiple genome coordinates for miRNAs/pre-miRNAs ==========>>\n"
+	if miOutputFolder == "" or not miOutputFolder:
+		miOutputFolder = makeRightPath(makeRightPath(miWorkDir)+"resultsTables")
 	else:
-		miOutputFolder = makeRightPath(miWorkDir)+"resultsTables"
-		miOutputFolder = makeRightPath(miOutputFolder)		
+		miOutputFolder = makeRightPath(makeRightPath(miWorkDir)+miOutputFolder)
 	if not os.path.exists(miOutputFolder):
 		os.makedirs(miOutputFolder)
 	miWorkDir = makeRightPath(makeRightPath(miWorkDir) +"miRBase")
@@ -1036,17 +1037,18 @@ def MiRrMultipleLocations( miWorkDir, miVersionList, miOutputFolder, miSpecies )
 	## write out into file
 	filenamePrefix = "miRBase_"+"V"+str(miVersionList[0]) + "-"+"V"+str(miVersionList[-1]) +"_"+"-".join(miSpecies)+"_"
 	WriteList2File(multiLocMiRArrayInfoArray, filenamePrefix+"MultiLocationsInVersions.tsv",miOutputFolder)
+	print "\n <<========== Multiple genome coordinates for miRNAs/pre-miRNAs \n\n"
 
-## public function
+## PUBLIC FUNCTION
 def HighConfidenceComparison( miWorkDir, miVersionList, miOutputFolder, miSpecies, miQueryVersion):
 	############################################
 	## investigate high confidence files in version 20, 21 an 22
 	############################################
-	if os.path.isdir(miOutputFolder):
-		miOutputFolder = makeRightPath(miOutputFolder)
+	print "\n High confidence annotation comparison ==========>>\n"
+	if miOutputFolder == "" or not miOutputFolder:
+		miOutputFolder = makeRightPath(makeRightPath(miWorkDir)+"resultsTables")
 	else:
-		miOutputFolder = makeRightPath(miWorkDir)+"resultsTables"
-		miOutputFolder = makeRightPath(miOutputFolder)		
+		miOutputFolder = makeRightPath(makeRightPath(miWorkDir)+miOutputFolder)		
 	if not os.path.exists(miOutputFolder):
 		os.makedirs(miOutputFolder)
 	miWorkDir = makeRightPath(makeRightPath(miWorkDir) +"miRBase")
@@ -1147,9 +1149,8 @@ def HighConfidenceComparison( miWorkDir, miVersionList, miOutputFolder, miSpecie
 		## write file for each species
 		filenamePrefix = "miRBase_v20-v21-v22"+"_"+ispecies+"_"
 		WriteList2File(speciesArray, filenamePrefix+"mature.HighConfidenceProfile.tsv", miOutputFolder)
+	print "\n <<========== High confidence annotation comparison \n\n"
 
-
-## in-class function
 def calculatePairwiseLevenshteinDistance( iFastaSeqDict, imolecular, miLevDist):
 	############################################
 	## based on a given fasta dictionary, calculate the Levenshtein Distance of each two miRNAs
@@ -1203,16 +1204,16 @@ def calculatePairwiseLevenshteinDistance( iFastaSeqDict, imolecular, miLevDist):
 	# 	name2NameAccessionDict[ifastaID.split("/")[0]] = ifastaID
 	return [name2NameAccessionDict,  distArray,  minimumDistArray,  subsetLevDistList]
 
-## public function
+## PUBLIC FUNCTION
 def SeqSimilarityNetwork( miWorkDir, miQueryVersion, miOutputFolder, miSpecies, miLevDist):
 	############################################
 	## on a specific version, build Levenshtein distance matrix for each given species 
 	############################################
-	if os.path.isdir(miOutputFolder):
-		miOutputFolder = makeRightPath(miOutputFolder)
+	print "\n Building sequence similarity network based on Levenshtein distance ==========>>\n"
+	if miOutputFolder == "" or not miOutputFolder:
+		miOutputFolder = makeRightPath(makeRightPath(miWorkDir)+"resultsTables")
 	else:
-		miOutputFolder = makeRightPath(miWorkDir)+"resultsTables"
-		miOutputFolder = makeRightPath(miOutputFolder)		
+		miOutputFolder = makeRightPath(makeRightPath(miWorkDir)+miOutputFolder)	
 	if not os.path.exists(miOutputFolder):
 		os.makedirs(miOutputFolder)
 	miLevDist = int(miLevDist) ## if case user input a string
@@ -1262,19 +1263,20 @@ def SeqSimilarityNetwork( miWorkDir, miQueryVersion, miOutputFolder, miSpecies, 
 		filenamePrefix = "miRBase_V"+miQueryVersion +"_"+ispecies+"_"
 		assemblerRscript_SeqSimilarityNetwork(ispecies, filenamePrefix, miOutputFolder, miRscriptsFolder)
 		rscriptExecuteCmd = " ".join(["Rscript" , (miRscriptsFolder+ispecies+"-SeqSimilarityNetwork.R")  ])
-		os.system(rscriptExecuteCmd)
+		# os.system(rscriptExecuteCmd)
+	print "\n <<========== Building sequence similarity network based on Levenshtein distance \n\n"
 
-## public function
+## PUBLIC FUNCTION
 def BuildingCuratedGff( miWorkDir, miQueryVersion, miOutputFolder, miSpecies, miVersionList, miGffOptions):
 	############################################
 	## on a specific version, build curated annotation files for each given species 
 	############################################
+	print "\n Building curated miRNA annotation ==========>>\n"
 	parentalWorkDir = miWorkDir
-	if os.path.isdir(miOutputFolder):
-		miOutputFolder = makeRightPath(miOutputFolder)
+	if miOutputFolder == "" or not miOutputFolder:
+		miOutputFolder = makeRightPath(makeRightPath(miWorkDir)+"resultsTables")
 	else:
-		miOutputFolder = makeRightPath(miWorkDir)+"resultsTables"
-		miOutputFolder = makeRightPath(miOutputFolder)		
+		miOutputFolder = makeRightPath(makeRightPath(miWorkDir)+miOutputFolder)
 	if not os.path.exists(miOutputFolder):
 		os.makedirs(miOutputFolder)
 	miWorkDir = makeRightPath(makeRightPath(miWorkDir) +"miRBase")
@@ -1669,74 +1671,43 @@ def BuildingCuratedGff( miWorkDir, miQueryVersion, miOutputFolder, miSpecies, mi
 		## write out into file
 		filenamePrefix = "miRBase_V"+miQueryVersion +"_"+ispecies+"_"
 		WriteList2File(excludingArray, filenamePrefix+"Excluding-miRNA-premiRNA.tsv",miOutputFolder)
+	print "\n <<========== Building curated miRNA annotation \n\n"
 
-def speciesValidation(miSpecies, miVersionList, miWorkDir):
-	validatingMes = True
-	for iversion in miVersionList:
-		iVersionOrganismTxt = ReadOrganismToArray(makeRightPath(miWorkDir)+"miRBase/" +iversion +"/organisms.txt") 
-		for ispecies in miSpecies:
-			if ispecies not in iVersionOrganismTxt:
-				if validatingMes:
-					validatingMes = "%s is not "
-				else:
-					validatingMes += "; "
-
-
-##  TMP demo test
-def DemoTest( miWorkDir, miVersionList, miOutputFolder, miSpecies):
-	############################################
-	## tmp function
-	############################################
-	if os.path.isdir(miOutputFolder):
-		miOutputFolder = makeRightPath(miOutputFolder)
+def speciesValidation(ispecies, iversion, miWorkDir):
+	validatingBol = True
+	validatingMes = []
+	if float(iversion) >= 12.0:
+		iVersionOrganismTxt = ReadOrganismToArray(makeRightPath(miWorkDir)+iversion +"/organisms.txt") 
+		if ispecies not in iVersionOrganismTxt:
+			validatingBol = False
+			validatingMes.append("-organismsTXT")
+			# if validatingMes:
+			# 	validatingMes = "%s is not in organisms.txt"%(ispecies)
+			# else:
+			# 	validatingMes += "; "
+		else:
+			validatingMes.append("+organismsTXT")
 	else:
-		miOutputFolder = makeRightPath(miWorkDir)+"resultsTables"
-		miOutputFolder = makeRightPath(miOutputFolder)		
-	if not os.path.exists(miOutputFolder):
-		os.makedirs(miOutputFolder)
-	miWorkDir = makeRightPath(makeRightPath(miWorkDir) +"miRBase")
+		print "In this version %s, organisms.txt file is not available in miRBase"%(iversion)
+		## Not available in organisms.txt, then check in mature.fa
+		iversionSpeciesArray = ReadSpeciesCodeFromFasta(makeRightPath(miWorkDir) +iversion +"/mature.fa")
+		if ispecies in iversionSpeciesArray:
+			validatingMes.append("+matureFASTA")
+		else:
+			validatingBol = False
+			validatingMes.append("-matureFASTA")
+	return [validatingBol, ("\t".join(validatingMes))]
 
-	miRStrProfileArray = []
-
-	for iversion in miVersionList: ## iterate versions
-		versionStr = "V"+iversion
-		iverionFolder = makeRightPath(miWorkDir+iversion) 
-
-		for ispecies in miSpecies: ## iterate species
-			iMirStr= ReadChild2ParentFromStr(iverionFolder+"miRNA.str", ispecies)
-			multiplePrecursorsCount = 0
-			for ikey in iMirStr.keys():
-				if iMirStr[ikey].count(";") > 0:
-					multiplePrecursorsCount += 1
-				miRStrProfileArray.append(versionStr +"\t"+ ispecies +"\t"+ ikey +"\t"+ str(iMirStr[ikey].count(";")+1) +"\t"+ iMirStr[ikey] +"\n")
-			print "in this species %s, %i have more than precursors out of %i"%(ispecies,multiplePrecursorsCount, len(iMirStr) )
-	## write out into file
-	filenamePrefix = "miRBase_"+"-".join(miVersionList) +"_"+"-".join(miSpecies)+"_"
-	WriteList2File(miRStrProfileArray, filenamePrefix+"HairpinMoreThanMature-Profile.tsv",miOutputFolder)
-	## 
-	[highConfNameAccessionV22Array, highConfNameAccessionV22Dict] = ReadAC2IDfromDat(( makeRightPath(miWorkDir+"22")+ "miRNA_high_conf.dat"))
-	queryFile = ["miRBase_V22_mmu_hairpin_minLevenshteinDistance.tsv", "miRBase_V22_hsa_hairpin_minLevenshteinDistance.tsv"]
-
-	for ifile in queryFile:
-		filehandle = open(miOutputFolder+ifile, "r")
-		sumcount = 0
-		print ifile
-		for line in filehandle:
-			iquery = line.split("\t")[0]
-			if iquery in highConfNameAccessionV22Array:
-				print iquery
-				sumcount += 1
-		filehandle.close()
-		print "in file %s: %s moleculars are found in High Confidence set"%(ifile, str(sumcount))
-
-## END for main program ##
+## END for main functions <========
+## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 ####################################################
 
 
 ####################################################
 ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-## I/O function
+## I/O function ========>
 def WriteList2File( yourList, yourFilename, yourFolder):
 	############################################
 	## write a list of string, output into file
@@ -1749,6 +1720,17 @@ def WriteList2File( yourList, yourFilename, yourFolder):
 	filehandle = open(putputfilename, "w")
 	filehandle.writelines(yourList)
 	filehandle.close()
+
+def ReadSpeciesCodeFromFasta(fastaFilename):
+	############################################
+	## read in fasta file, extract species codes into list
+	############################################
+	speciesCodeArray = []
+	fastaHandle = open(fastaFilename, "r")
+	for ifasta in SeqIO.parse(fastaHandle,"fasta"):
+		speciesCodeArray.append((ifasta.id).split("-")[0])
+	fastaHandle.close()
+	return list(set(speciesCodeArray))
 
 def ReadMFEfromMiRStr( queryMiRStrFile):
 	############################################
@@ -2295,8 +2277,8 @@ def MFEdensityInMiRStr( miWorkDir, miVersionList, miOutputFolder):
 		iMirStrFile = makeRightPath(mirbaseDir+iversion)+"miRNA.str"
 		if not os.path.isfile(iMirStrFile):
 			print "SKIPPING! Could not find miRNA.str file in version %s for processing: %s."%(iversion, iMirStrFile)
-
-		speciesDecodingDict = ReadOrganismDecoding( makeRightPath(mirbaseDir+iversion)+"organisms.txt")
+		if float(iversion) >= 12.0:
+			speciesDecodingDict = ReadOrganismDecoding( makeRightPath(mirbaseDir+iversion)+"organisms.txt")
 		mirStrfile = open(iMirStrFile, "r")
 		for line in mirStrfile:
 			if line.startswith(">"):
@@ -2312,10 +2294,13 @@ def MFEdensityInMiRStr( miWorkDir, miVersionList, miOutputFolder):
 
 def ReadOrganismDecoding( queryOrganismTxt):
 	############################################
-	## read in orhanism.txt to decode the species code 
+	## read in organism.txt to decode the species code 
 	############################################
 	if not os.path.isfile(queryOrganismTxt):
-		sys.exit("Could not find organism.txt file!")
+		if not os.path.isfile(queryOrganismTxt.replace("organisms.txt", "organism.txt")):
+			sys.exit("Could not find organism.txt file! Check this: %s"%(queryOrganismTxt))
+		else:
+			queryOrganismTxt = queryOrganismTxt.replace("organisms.txt", "organism.txt")
 	txtHandle = open(queryOrganismTxt)
 	speciesDecodingDict = {}
 	for line in txtHandle:
@@ -2331,31 +2316,39 @@ def ReadOrganismDecoding( queryOrganismTxt):
 
 def ReadOrganismToArray( queryOrganismTxt):
 	############################################
-	## read in orhanism.txt to decode the species code 
+	## read in organism.txt to decode the species code 
 	############################################
 	if not os.path.isfile(queryOrganismTxt):
-		sys.exit("Could not find organism.txt file!")
+		if not os.path.isfile(queryOrganismTxt.replace("organisms.txt", "organism.txt")):
+			sys.exit("Could not find organism.txt file! Check this: %s"%(queryOrganismTxt))
+		else:
+			queryOrganismTxt = queryOrganismTxt.replace("organisms.txt", "organism.txt")
 	txtHandle = open(queryOrganismTxt)
-	speciesArray = {}
+	speciesArray = []
 	for line in txtHandle:
 		if not line.startswith("#"):
 			line = line.rstrip()
 			lineSplitted = line.split("\t")
-			organismFeatures = []
+			# organismFeatures = []
 			speciesArray.append(lineSplitted[0] ) 
 	txtHandle.close()
 	return speciesArray
 	
 
-## END ##
+## I/O function <========
+## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 ####################################################
 
 
 ####################################################
 ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-## R script assembling
+## R script assembling  ========>
 def assemblerRscript_countingMatureInVersion( filenamePrefix, miOutputFolder, miRscriptsFolder):
+	############################################
+	## assembler R script for counting mature miRNAs in different versions
+	############################################
 	# filenamePrefix, miOutputFolder, miRscriptsFolder
 	scriptArray = []
 	inputfile = miOutputFolder+filenamePrefix+"countingMatureInSpeciesInVersion.tsv"
@@ -2407,6 +2400,9 @@ def assemblerRscript_countingMatureInVersion( filenamePrefix, miOutputFolder, mi
 	assemblerRscript_WriteScriptToFile("\n".join(scriptArray), "countingMatureInVersion.R",  miRscriptsFolder)
 
 def assemblerRscript_matureSeqLenDistribution( filenamePrefix, miOutputFolder, miRscriptsFolder):
+	############################################
+	## assembler R script for investigating sequence length distribution of mature miRNAs in different versions
+	############################################
 	scriptArray = []
 	inputfile = miOutputFolder+filenamePrefix+"MatureSeqLenDistInVersions.tsv"
 	scriptArray.append("")
@@ -2436,6 +2432,9 @@ def assemblerRscript_matureSeqLenDistribution( filenamePrefix, miOutputFolder, m
 	assemblerRscript_WriteScriptToFile("\n".join(scriptArray), "matureSeqLenDistribution.R",  miRscriptsFolder)
 
 def assemblerRscript_buildText4SpeciesCloud( filenamePrefix, miOutputFolder, miRscriptsFolder):
+	############################################
+	## assembler R script for constructing species text informartion for species word cloud
+	############################################
 	scriptArray = []
 	inputfile = miOutputFolder+filenamePrefix+"Text4SpeciesCloud.tsv"
 	scriptArray.append("")
@@ -2469,6 +2468,9 @@ def assemblerRscript_buildText4SpeciesCloud( filenamePrefix, miOutputFolder, miR
 	assemblerRscript_WriteScriptToFile("\n".join(scriptArray), "buildText4SpeciesCloud.R",  miRscriptsFolder)
 
 def assemblerRscript_diffCountMatureHairpin( filenamePrefix, miOutputFolder, miRscriptsFolder):
+	############################################
+	## assembler R script for comparing mature miRNA count and pre-miRNA count in different versions
+	############################################
 	scriptArray = []
 	inputfile = miOutputFolder+filenamePrefix+"CountingMatureHairpinBySpeciesInVersions.tsv"
 	scriptArray.append("")
@@ -2495,6 +2497,9 @@ def assemblerRscript_diffCountMatureHairpin( filenamePrefix, miOutputFolder, miR
 	assemblerRscript_WriteScriptToFile("\n".join(scriptArray), "diffCountMatureHairpin.R",  miRscriptsFolder)
 
 def assemblerRscript_MFEdistribution( filenamePrefix, miOutputFolder, miRscriptsFolder):
+	############################################
+	## assembler R script for investigating MFE distribution in different versions
+	############################################
 	scriptArray = []
 	inputfile = miOutputFolder+filenamePrefix+"fullDistribution4MFE.tsv"
 	scriptArray.append("")
@@ -2521,6 +2526,9 @@ def assemblerRscript_MFEdistribution( filenamePrefix, miOutputFolder, miRscripts
 	assemblerRscript_WriteScriptToFile("\n".join(scriptArray), "MFEdistribution.R",  miRscriptsFolder)
 
 def assemblerRscript_identicalWithinSpecies( filenamePrefix, miOutputFolder, miRscriptsFolder):
+	############################################
+	## assembler R script for investigating miRNAs that sharing identical sequences in different versions
+	############################################
 	scriptArray = []
 	inputfile = miOutputFolder+filenamePrefix+"IdenticalSequenceWithInSpecies.tsv"
 	scriptArray.append("")
@@ -2550,6 +2558,9 @@ def assemblerRscript_identicalWithinSpecies( filenamePrefix, miOutputFolder, miR
 	assemblerRscript_WriteScriptToFile("\n".join(scriptArray), "identicalWithinSpecies.R",  miRscriptsFolder)
 
 def assemblerRscript_NucleotideCombination( filenamePrefix, miOutputFolder, miRscriptsFolder):
+	############################################
+	## assembler R script for investigating nucleotide combination bias in different versions
+	############################################
 	scriptArray = []
 	# inputfile = miOutputFolder+filenamePrefix+"EndNucleotideCombination_mature.tsv"
 	scriptArray.append("")
@@ -2609,6 +2620,9 @@ def assemblerRscript_NucleotideCombination( filenamePrefix, miOutputFolder, miRs
 	assemblerRscript_WriteScriptToFile("\n".join(scriptArray), "NucleotideCombination.R",  miRscriptsFolder)
 
 def assemblerRscript_SeqSimilarityNetwork( ispecies, filenamePrefix, miOutputFolder, miRscriptsFolder):
+	############################################
+	## assembler R script for investigating sequence similarity of mature miRNAs and pre-miRNAs in different versions
+	############################################
 	scriptArray = []
 	
 	scriptArray.append("")
@@ -2662,6 +2676,9 @@ def assemblerRscript_SeqSimilarityNetwork( ispecies, filenamePrefix, miOutputFol
 	assemblerRscript_WriteScriptToFile("\n".join(scriptArray), ispecies+"-SeqSimilarityNetwork.R",  miRscriptsFolder)
 
 def assemblerRscript_TrackingDiffInVersions( filenamePrefix, miOutputFolder, miRscriptsFolder):
+	############################################
+	## assembler R script for tracking update difference in different versions
+	############################################
 	scriptArray = []
 	inputfile = miOutputFolder+filenamePrefix+"IdenticalSequenceWithInSpecies.tsv"
 	scriptArray.append("")
@@ -2683,6 +2700,9 @@ def assemblerRscript_TrackingDiffInVersions( filenamePrefix, miOutputFolder, miR
 	assemblerRscript_WriteScriptToFile("\n".join(scriptArray), "TrackingDiffInVersions.R",  miRscriptsFolder)
 
 def assemblerRscript_HighConfidenceComparison( filenamePrefix, miOutputFolder, miRscriptsFolder):
+	############################################
+	## assembler R script for investigating high confidence annotation in different versions
+	############################################
 	scriptArray = []
 	inputfile = miOutputFolder+filenamePrefix+"IdenticalSequenceWithInSpecies.tsv"
 	scriptArray.append("")
@@ -2715,3 +2735,9 @@ def assemblerRscript_WriteScriptToFile( queryList, queryFilename, queryFolder):
 	filehandle = open(outputfilename, "w")
 	filehandle.writelines(queryList)
 	filehandle.close()
+
+## R script assembling  <========
+## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+####################################################
+

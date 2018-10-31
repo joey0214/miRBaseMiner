@@ -1,5 +1,5 @@
 # miRBaseMiner
-Version: 0.1
+Version: 0.2
 python version: 2.7
 
 ####  Any feedback and contributions are appreciated. 
